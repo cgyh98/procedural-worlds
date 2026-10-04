@@ -1,0 +1,107 @@
+.noise-app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: #14161c;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: #1a1c23;
+  border-right: 1px solid #2e303a;
+}
+
+.gui-mount {
+  width: 100%;
+}
+
+.preview-2d {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-tabs {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 6px 0;
+  background: #22242c;
+  color: #9ca3af;
+  border: 1px solid #2e303a;
+  border-radius: 4px;
+  font: 12px/1.4 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  color: #f3f4f6;
+}
+
+.tab-btn.active {
+  background: #2e303a;
+  color: #f3f4f6;
+  border-color: #4f8dfd;
+}
+
+.tab-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-2d-canvas {
+  width: 296px;
+  height: 296px;
+  image-rendering: pixelated;
+  border: 1px solid #2e303a;
+  border-radius: 4px;
+}
+
+.erosion-controls {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+}
+
+.sim-btn {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 4px;
+  border: 1px solid #2e303a;
+  font: 13px/1.4 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.sim-btn-start {
+  background: #2f7d4f;
+  color: #f3f4f6;
+}
+
+.sim-btn-stop {
+  background: #7d3030;
+  color: #f3f4f6;
+}
+
+.sim-btn:disabled {
+  background: #22242c;
+  color: #5a5d68;
+  cursor: not-allowed;
+}
+
+.viewport-3d {
+  flex: 1;
+  height: 100vh;
+}
