@@ -27,3 +27,8 @@ dist-ssr
 vault/.obsidian/workspace*.json
 vault/.obsidian/cache
 vault/.trash/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
