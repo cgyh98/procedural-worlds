@@ -11,6 +11,8 @@
 ## Decisions
 - [[repo-and-vault-setup]]
 - [[r3f-vs-vanilla-threejs]] (accepted)
+- [[ui-tabs-per-module]] (accepted): one lab tab per module + a combined World tab
+- [[firebase-hosting-setup]] (accepted): personal Firebase project, live at https://bioluminescent-ocean.web.app
 
 ## Open questions
 See "Open questions" in `CLAUDE.md`.

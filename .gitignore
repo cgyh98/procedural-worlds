@@ -32,3 +32,7 @@ vault/.trash/
 .env
 .env.*
 !.env.example
+
+# Firebase CLI cache
+.firebase/
+firebase-debug.log

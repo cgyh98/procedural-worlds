@@ -177,7 +177,7 @@ export const useWorld = create((set) => ({
 
 ## Current status
 
-Concept and direction chosen. Code: an empty R3F scene shell (dark background, fog, orbit controls, a leva debug toggle showing a grid + axes). The CLASS_03 terrain prototype was removed; it is still in ~/Documents/PWB_CLASS_03 and in commit 7020c32 if any of it is needed again. Per-frame values go through refs in `useFrame`, never React state. The most recent class covered **vector fields** (modules 12–14 area), so earlier concepts (noise/heightmaps, spherical mapping, voxels, 2D maps/erosion/biomes) have already been covered in class but are not yet in the project.
+Concept and direction chosen. Code: an R3F app shell with **one tab per module plus a combined World tab** (see vault/decisions/ui-tabs-per-module.md). Each module lives in `src/modules/<name>/` (`Scene.tsx` + `index.ts` exporting a `WorldModule`) and is listed in `src/modules/registry.ts`. The shell owns the shared canvas, fog, orbit controls and the global debug toggle; tabs so far: Scene shell (grid + axes) and World (empty). Firebase is set up (project `bioluminescent-ocean`, Spark plan, personal account); the site is live at https://bioluminescent-ocean.web.app and deploys with `npm run deploy`. `src/backend/firebase.ts` initializes Firebase from `.env.local` but nothing uses it yet. The CLASS_03 terrain prototype was removed; it is still in ~/Documents/PWB_CLASS_03 and in commit 7020c32 if any of it is needed again. Per-frame values go through refs in `useFrame`, never React state. The most recent class covered **vector fields** (modules 12–14 area), so earlier concepts (noise/heightmaps, spherical mapping, voxels, 2D maps/erosion/biomes) have already been covered in class but are not yet in the project.
 
 ## Open questions
 
@@ -186,4 +186,4 @@ Concept and direction chosen. Code: an empty R3F scene shell (dark background, f
 - How networks (modules 21–22) fit the ocean theme
 - Player form: creature vs. diver
 - Whether the moon phase is player-controlled, time-based, or tied to progress
-- Firebase vs. Supabase, and what gets saved
+- What gets saved in Firebase (seeds, settings, painted maps), and whether Supabase is also used
