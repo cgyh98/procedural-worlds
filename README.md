@@ -11,7 +11,7 @@ A dark ocean world that only lights up where you disturb it. It's an explorable,
 Each system (noise, spherical mapping, voxels, erosion, biomes, vector fields, populations, LOD…) is its own module, with sliders, swappable algorithm variants, tooltips and a debug view.
 
 ## Status
-🚧 Early development. `src/` currently holds a noise + hydraulic erosion terrain prototype that will be reworked into the seafloor.
+🚧 Early development: an empty React Three Fiber scene shell. Built with React Three Fiber, drei, leva, zustand and @react-three/postprocessing.
 
 ## Run locally
 ```bash

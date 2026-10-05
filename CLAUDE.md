@@ -153,7 +153,7 @@ A single global value `moonPhase` (0 = new moon, 1 = full moon) feeds into:
 ## Tech stack
 
 - React + three.js
-- Recommended (not yet confirmed): React Three Fiber (`@react-three/fiber`), `@react-three/drei`, `@react-three/postprocessing` for bloom, `zustand` for global state, `leva` for sliders/dropdowns/debug controls. If the class requires vanilla three.js inside React, the same architecture applies with more boilerplate.
+- Chosen (see vault/decisions/r3f-vs-vanilla-threejs.md): React Three Fiber (`@react-three/fiber`), `@react-three/drei`, `@react-three/postprocessing` for bloom, `zustand` for global state, `leva` for sliders/dropdowns/debug controls.
 - Backend (module 4): Firebase and/or Supabase for auth, database, storage, hosting. Possible uses: saving painted maps, world seeds, and settings.
 
 ## Technical guidelines
@@ -177,11 +177,10 @@ export const useWorld = create((set) => ({
 
 ## Current status
 
-Concept and direction chosen; no code written yet for the ocean world. The repo currently contains the terrain/noise/erosion app from the earlier partial presentation (PWB_CLASS_03) as reference material. The most recent class covered **vector fields** (modules 12–14 area), so earlier concepts (noise/heightmaps, spherical mapping, voxels, 2D maps/erosion/biomes) have already been covered in class but are not yet in the project.
+Concept and direction chosen. Code: an empty R3F scene shell (dark background, fog, orbit controls, a leva debug toggle showing a grid + axes). The CLASS_03 terrain prototype was removed; it is still in ~/Documents/PWB_CLASS_03 and in commit 7020c32 if any of it is needed again. Per-frame values go through refs in `useFrame`, never React state. The most recent class covered **vector fields** (modules 12–14 area), so earlier concepts (noise/heightmaps, spherical mapping, voxels, 2D maps/erosion/biomes) have already been covered in class but are not yet in the project.
 
 ## Open questions
 
-- React Three Fiber vs. vanilla three.js inside React (does the class have a requirement?)
 - Whether to adopt the two-scale structure (planet view + dive view)
 - Where to start building: the most recent topic (vector fields / ocean currents) or the foundations (scene, noise seafloor) first
 - How networks (modules 21–22) fit the ocean theme

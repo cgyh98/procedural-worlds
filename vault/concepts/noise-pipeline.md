@@ -1,5 +1,7 @@
 # The terrain pipeline
 
+> Code reference: this describes the PWB_CLASS_03 prototype. It was removed from this repo on 2026-10-04; see ~/Documents/PWB_CLASS_03 or commit 7020c32.
+
 noise → fBm octaves → normalize & shape → blend layers → heightmap → erosion → 3D mesh + colour
 
 1. **Noise** (`src/noise/generators.ts`) gives smooth, repeatable randomness from a seed. Value noise interpolates random lattice values; simplex uses gradients on a triangular grid; Worley measures the distance to the nearest random feature point (cells).
