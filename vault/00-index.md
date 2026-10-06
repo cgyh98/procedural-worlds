@@ -8,6 +8,7 @@
 - [[2026-10-06]]: wake ellipsoid + procedural jellyfish player
 
 ## Concepts
+- [[spherical-mapping-planet]]: four sphere constructions, lon/lat mapping, map ↔ planet animation, moon phase (Ocean planet tab, module 6: the atlas cover)
 - [[noise-pipeline]]: noise → fBm → shaping → blending → erosion → mesh (notes from the CLASS_03 prototype; the code was removed and lives in the PWB_CLASS_03 folder and the first commit)
 
 - [[heightmaps-and-noise]]: heightmaps, Perlin / Simplex / Worley, fBm, ridged (Seafloor map tab, modules 5 + 9)
