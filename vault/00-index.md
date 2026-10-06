@@ -11,6 +11,7 @@
 
 - [[heightmaps-and-noise]]: heightmaps, Perlin / Simplex / Worley, fBm, ridged (Seafloor map tab, modules 5 + 9)
 - [[distributions]]: random vs. jittered grid vs. Poisson disk, filtered by height and slope (Kelp distribution tab, modules 15–16)
+- [[paths-and-networks]]: MST / Gabriel / k-nearest graphs, A* vs. Dijkstra over the terrain (Reef paths tab, modules 21–22)
 - [[vector-fields]]: vector fields, advection, curl noise, vortex (Currents tab, modules 12–14)
 - [[excitation-and-player]]: the excitation rule, swimming, follow camera (Disturbance tab, core mechanic)
 

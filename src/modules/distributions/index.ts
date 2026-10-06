@@ -14,6 +14,6 @@ export const distributionsModule: WorldModule = {
     'Debug shows accepted (amber) and rejected (red) points, with rings of radius r/2 that never overlap ' +
     'under Poisson disk. The 2D map view shows the distribution as a map.',
   Scene: DistributionsScene,
-  inWorld: true,
+  // Not in the World directly: it joins through Reef paths, which draws it under the network.
   camera: [0, 20, 30],
 }

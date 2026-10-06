@@ -9,7 +9,9 @@ import { Kelp, type Strand } from './Kelp'
 import { SamplePoints } from './SamplePoints'
 
 // Distributions = the seafloor + kelp placed on it.
-export function DistributionsScene({ debug }: ModuleSceneProps) {
+// `embedded`: drawn as the base of a later tab (Reef paths), so skip the map markers
+// and this tab's debug layer, which would clutter that tab.
+export function DistributionsScene({ debug, embedded = false }: ModuleSceneProps & { embedded?: boolean }) {
   const seafloor = useSeafloor()
   const { sampler, size, is2D } = seafloor
 
@@ -102,7 +104,9 @@ export function DistributionsScene({ debug }: ModuleSceneProps) {
     <>
       {/* The terrain draws normally here: this tab's debug view is about the points. */}
       <SeafloorView seafloor={seafloor} debug={false} />
-      {is2D ? (
+      {embedded ? (
+        !is2D && <Kelp strands={strands} sway={kelp.sway} glow={kelp.glow} recovery={kelp.recovery} />
+      ) : is2D ? (
         // 2D map: the distribution itself, as markers on the map
         <SamplePoints accepted={flatAccepted} rejected={flatRejected} spacing={dist.spacing} showRings={debug} />
       ) : (
