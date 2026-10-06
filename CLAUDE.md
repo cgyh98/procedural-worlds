@@ -19,7 +19,7 @@ The project also needs a clear theme/concept from a design perspective: **the se
 - Concept notes (noise, vector fields, erosion…) go in `vault/concepts/`; design choices go in `vault/decisions/` (context → options → choice → why).
 - At the end of each work session, add or append to `vault/journal/YYYY-MM-DD.md`: what was done, what was learned, open questions, next steps.
 - Use Obsidian `[[wikilinks]]` between notes and link new notes from `vault/00-index.md`.
-- Images go in `vault/assets/`.
+- Images go in `vault/assets/`. That folder is **gitignored (local only)**: progress screenshots and reference images by other artists never go into the public repo.
 - Never put secrets (API keys, Firebase/Supabase credentials) in the vault or the code; this repo is public. Use `.env.local` (gitignored).
 
 ## Class syllabus (high-level guide for the project's structure)

@@ -36,3 +36,8 @@ vault/.trash/
 # Firebase CLI cache
 .firebase/
 firebase-debug.log
+
+# Vault images stay local: progress screenshots and reference images by other artists
+# (inspiration boards, UI references). The Obsidian notes still show them on this machine.
+vault/assets/*
+!vault/assets/.gitkeep
