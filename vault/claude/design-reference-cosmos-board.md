@@ -1,0 +1,58 @@
+# Design reference: cosmos board
+
+My inspiration board, read for what it means for the project's look. Source: `cosmos_board.png`.
+
+![[cosmos_board.png]]
+
+## The overall feeling
+**The deep ocean as a cosmos.** Mostly black, with small, cold, precise points and threads of light. Huge negative space, tiny living lights. This matches the core concept ("vast emptiness vs. tiny living points of light") and suggests a reading: **plankton as stars, currents as galaxies.**
+
+## Palette
+| Role | Colour (by eye) | Where it shows up on the board |
+|---|---|---|
+| Base / void | near-black navy `#02040a` → `#060d1f` | Every tile: the dominant colour is darkness |
+| Deep water | dark cobalt `#0b1f4d` | Whale and reef tiles, around light shafts |
+| Main glow | **electric blue** `#2f6bff` → `#4fa3ff` | Blue filament strands, caustic veins, reef |
+| Secondary glow | cyan / aqua `#3fd6e0` | Icy mountains, reef highlights |
+| Bio accent | sea green `#5fe0a0` | Glowing edges of the dark leaves |
+| Highlight | ice white `#e6f4ff` | Brightest cores, foam, lightning |
+| Rare warm accent | amber `#f0a640` | The light behind the crab silhouette |
+| Rarest accent | iridescent / prismatic | Oil-slick marble, rainbow lightning |
+
+Compared to now, the project is **more cyan/teal**; the board leans **bluer** (electric cobalt), with green only on edges and warm colours almost never.
+
+## Recurring visual motifs → where they fit
+1. **Thin luminous filaments** (blue hair-like strands, flowing streaks). → Draw currents as glowing **streamlines/trails** instead of only dots; kelp and anemones as glowing strands (*vector fields, distributions*).
+2. **Caustic web / veins** (blue Voronoi-like network). This is exactly **Worley noise edges** (F2 − F1). → A custom **shader** that draws moonlit caustics rippling across the seafloor (*shaders*).
+3. **Edge / rim glow** (leaves glowing only at their edges, reef highlights). → A **fresnel** shader term: surfaces glow where they turn away from the camera (*shaders*, later creatures).
+4. **Light from above + silhouettes** (whale under a sunlit surface, crab against amber). → Moonlight shafts from the surface; creatures as dark silhouettes against it. Ties to **counterillumination** (animals glow on their bellies to erase that silhouette) (*moon, species*).
+5. **Starfield particles on black** (the near-empty "cosmos" tile). → Keep plankton sparse with lots of black; we're close already.
+6. **Line-drawn terrain** (white contour stripes, scanline-like terrain). → **Contour lines** on the 2D seafloor map (*maps*).
+7. **Glowing terrain under dark peaks** (icy-blue valleys below dark mountains). → Seafloor brighter in low areas or along slopes; a possible ramp or emissive variation (*maps*).
+8. **Marbled fluid** (oil-slick swirls). → What advected dye in a curl-noise field looks like; a possible future visual for currents (*vector fields*).
+
+## Scale and composition
+- **Tiny vs. huge:** the diver beside the whale. Supports the player as a small light in a vast space.
+- **One strong light source per view** and darkness elsewhere.
+
+## Proposed changes
+**Quick (palette, minutes):**
+- Plankton glow: cyan → electric blue core with cyan highlights.
+- Seafloor ramp: shift teal → cobalt; keep only the very top ridge colour slightly aqua.
+- Debug colours stay amber (they're meant to stand apart from the art, and amber echoes the board's one warm accent).
+
+**Folded into the remaining presentation topics:**
+- *Shaders:* moonlit Worley caustics on the seafloor (motif 2), possibly with a fresnel rim (motif 3).
+- *Distributions:* glowing strand-like kelp / anemones placed on the seafloor (motif 1).
+- *Maps:* optional contour lines in the 2D map view (motif 6).
+- *Paths:* routes drawn as thin glowing filaments (motif 1).
+
+**Later:** moonlight shafts and silhouettes (moon module), marbled dye advection (currents), rare amber/iridescent accents reserved for special moments (e.g. the fireworm lunar display).
+
+## Related
+- [[excitation-and-player]], [[vector-fields]], [[heightmaps-and-noise]]
+
+## Applied (2026-10-05)
+- Plankton: electric blue when calm (`DIM`) → cyan-white when excited (`BRIGHT`), per point.
+- Seafloor ramp: teal → cobalt (`#03061a` → `#0a1c4a` → `#143a7a` → `#1f64a8` → `#6cc4e4`).
+- Kelp: thin glowing filaments, cobalt root → sea-green tip (motifs 1 and 3). See [[distributions]].

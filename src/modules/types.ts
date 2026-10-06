@@ -20,4 +20,9 @@ export type WorldModule = {
   Scene: ComponentType<ModuleSceneProps>
   // Whether this module is ready to be part of the combined World tab.
   inWorld?: boolean
+  // True if the module moves the camera itself (e.g. a follow camera), so the
+  // shell should not add its orbit controls.
+  controlsCamera?: boolean
+  // Where the camera starts when this tab opens (it looks at the origin).
+  camera?: [number, number, number]
 }

@@ -16,7 +16,9 @@ export function createWorldModule(getModules: () => WorldModule[]): WorldModule 
     about:
       'Every finished module, together in one ocean. ' +
       'Each lab tab isolates one concept; this tab shows how they add up. ' +
-      '(Empty for now: modules join once they are marked inWorld.)',
+      'Modules join once they are marked inWorld.',
     Scene: WorldScene,
+    // If any part drives the camera (the player), the World does too.
+    controlsCamera: getModules().some((m) => m.inWorld && m.controlsCamera),
   }
 }
