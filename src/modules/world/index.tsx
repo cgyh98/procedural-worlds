@@ -6,7 +6,10 @@ import type { ModuleSceneProps, WorldModule } from '../types'
 export function createWorldModule(getModules: () => WorldModule[]): WorldModule {
   function WorldScene(props: ModuleSceneProps) {
     const parts = getModules().filter((m) => m.inWorld)
-    return parts.map(({ id, Scene }) => <Scene key={id} {...props} />)
+    return parts.map(({ id, Scene, WorldLayer }) => {
+      const Part = WorldLayer ?? Scene
+      return <Part key={id} {...props} />
+    })
   }
 
   return {

@@ -20,6 +20,9 @@ export type WorldModule = {
   Scene: ComponentType<ModuleSceneProps>
   // Whether this module is ready to be part of the combined World tab.
   inWorld?: boolean
+  // What the World draws for this module, if not the whole tab Scene. Used by layers
+  // that sit on top of something another module already draws (e.g. caustics on the seafloor).
+  WorldLayer?: ComponentType<ModuleSceneProps>
   // True if the module moves the camera itself (e.g. a follow camera), so the
   // shell should not add its orbit controls.
   controlsCamera?: boolean

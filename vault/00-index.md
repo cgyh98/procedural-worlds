@@ -12,6 +12,8 @@
 - [[heightmaps-and-noise]]: heightmaps, Perlin / Simplex / Worley, fBm, ridged (Seafloor map tab, modules 5 + 9)
 - [[distributions]]: random vs. jittered grid vs. Poisson disk, filtered by height and slope (Kelp distribution tab, modules 15–16)
 - [[paths-and-networks]]: MST / Gabriel / k-nearest graphs, A* vs. Dijkstra over the terrain (Reef paths tab, modules 21–22)
+- [[shaders-caustics]]: custom GLSL shader, animated Worley caustics (Caustics tab, shaders topic)
+- [[voxels]]: rock/water voxel grid, density functions, visible-face meshing (Voxel reef tab, modules 7–8)
 - [[vector-fields]]: vector fields, advection, curl noise, vortex (Currents tab, modules 12–14)
 - [[excitation-and-player]]: the excitation rule, swimming, follow camera (Disturbance tab, core mechanic)
 
@@ -25,4 +27,5 @@
 See "Open questions" in `CLAUDE.md`.
 
 ## Claude write-ups
+- [[eli5-project-so-far]]: simple explanations of every tab so far + shaders and voxels plan (presentation notes)
 - [[design-reference-cosmos-board]]: reading of my inspiration board (palette, motifs, proposed changes)

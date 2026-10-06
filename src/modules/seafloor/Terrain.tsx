@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { BufferAttribute, Color, Group, PlaneGeometry } from 'three'
+import { BufferAttribute, Color, Group } from 'three'
+import { buildTerrainGeometry } from './terrainGeometry'
 import { FLOOR_Y } from './useSeafloor'
 
 // Depth colour ramp (cobalt palette from the cosmos board), from the deepest trench (t = 0) to the highest ridge (t = 1).
@@ -23,10 +24,8 @@ type TerrainProps = {
   debug: boolean
 }
 
-// Turns a heightmap into a 3D mesh.
+// Turns a heightmap into a 3D mesh (shape from buildTerrainGeometry, plus colours).
 //
-// A PlaneGeometry with (resolution − 1)² squares has exactly resolution² vertices,
-// in the same row-by-row order as the heightmap, so vertex k gets height heights[k].
 // The heights stay in [-1, 1] inside the geometry; the group's scale.y stretches them
 // to `depth`. That makes the 2D ↔ 3D transition almost free: animating scale.y from
 // 1 to 0 squashes the terrain into a flat, coloured map, without rebuilding anything.
@@ -37,12 +36,7 @@ export function Terrain({ heights, resolution, size, depth, relief, debug }: Ter
   // Build the mesh data: positions from the heights, plus vertex colours, either the
   // depth ramp or (debug) the raw noise value as grayscale. Rebuilt only when inputs change.
   const geometry = useMemo(() => {
-    const geo = new PlaneGeometry(size, size, resolution - 1, resolution - 1)
-    geo.rotateX(-Math.PI / 2) // lay it flat: the plane is built standing up (in XY)
-    const pos = geo.attributes.position
-    for (let k = 0; k < pos.count; k++) pos.setY(k, heights[k])
-    // Normals (which way each vertex faces) drive the lighting; recompute after moving vertices.
-    geo.computeVertexNormals()
+    const geo = buildTerrainGeometry(heights, resolution, size)
 
     const colors = new Float32Array(heights.length * 3)
     const c = new Color()
