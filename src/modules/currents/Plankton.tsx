@@ -118,7 +118,7 @@ export function Plankton({ field, clock, count, boxSize, pointSize, restGlow, fl
       const dx = x - cx
       const dy = y - cy
       const dz = z - cz
-      let e = exc[i] + disturbance(dx * dx + dy * dy + dz * dz) * dt
+      let e = exc[i] + disturbance(dx, dy, dz) * dt
       e = Math.min(e * keep, 2) // decay, and cap so a long stay doesn't blow out the bloom
       exc[i] = e
 

@@ -49,3 +49,33 @@ The plankton box is centred on the player and wraps around it. **A wrapped plank
 ## Structure
 - `systems/` = shared systems any tab can use (player, excitation). Plankton read them; jellyfish, coral and creatures will too.
 - The Disturbance tab = the Currents scene + the player. The World tab now uses Disturbance (Currents joins through it).
+
+## Update (2026-10-06): wake ellipsoid + jellyfish
+
+![[2026-10-06-jelly-swim.png]]
+*The jellyfish swimming: the bell tilts forward, tentacles trail, and the wake leaves a line of lit plankton behind.*
+
+### Why the zone was a sphere
+The rule only used **distance**, `e^(−d²/2r²)`, and distance is the same in every direction (isotropic), so equal stirring formed a sphere.
+
+### Wake ellipsoid (now the default; Sphere kept in the dropdown)
+Split each offset relative to the swim direction:
+- `along = offset · direction` (+ ahead, − behind)
+- `side² = d² − along²` (Pythagoras)
+
+and give each part its own size:
+- behind: `r × stretch`, with `stretch = 1 + wake × min(speed/5, 2)`, so faster means a longer wake
+- ahead: `r × 0.7`
+- sides: `r × width`
+
+`falloff = e^(−along²/2ra² − side²/2rs²)`: an egg trailing behind the swimmer. Cost: ~6 extra arithmetic operations per plankton (~0.05 ms for 8000).
+
+![[2026-10-06-jelly-wake-debug.png]]
+*Debug: the wake's 1σ and 3σ surfaces around the jellyfish.*
+
+### Procedural jellyfish (the player's body; settles creature vs. diver)
+- **Bell:** a translucent half-sphere with a bright core. It **pulses** (contracts narrower and taller), faster when swimming faster, and **tilts** towards the velocity (jellyfish swim bell-first), smoothly via quaternion slerp.
+- **Tentacles:** 10 chains × 16 points. Each frame: glue point 0 to the moving rim, drift every other point "down" (away from the bell top) with a sway, then a **distance constraint** puts each point exactly one segment from the previous one. Points are only dragged by their neighbour, so they lag and trail: "follow the leader", no physics engine. 160 points, one draw call.
+- Movement, body and debug are now three components (`Player`, `Jellyfish`, `WakeDebug`), mounted in that order so the body always draws this frame's position.
+
+![[2026-10-06-jelly-still.png]]

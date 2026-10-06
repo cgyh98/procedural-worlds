@@ -66,7 +66,7 @@ export function Kelp({ strands, sway, glow, recovery }: KelpProps) {
       const dx = st.x - player.position.x
       const dy = st.baseY + st.length / 2 - player.position.y
       const dz = st.z - player.position.z
-      const e = Math.min((exc[s] + disturbance(dx * dx + dy * dy + dz * dz) * dt) * keep, 2)
+      const e = Math.min((exc[s] + disturbance(dx, dy, dz) * dt) * keep, 2)
       exc[s] = e
       const brightness = glow + e * 2
 
