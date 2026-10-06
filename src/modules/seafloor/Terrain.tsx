@@ -22,6 +22,7 @@ type TerrainProps = {
   depth: number // height of the relief in world units
   relief: number // target: 1 = 3D terrain, 0 = flat 2D map (animated towards)
   debug: boolean
+  colors?: Float32Array // optional per-vertex colours (e.g. a biome map) instead of the depth ramp
 }
 
 // Turns a heightmap into a 3D mesh (shape from buildTerrainGeometry, plus colours).
@@ -29,7 +30,7 @@ type TerrainProps = {
 // The heights stay in [-1, 1] inside the geometry; the group's scale.y stretches them
 // to `depth`. That makes the 2D ↔ 3D transition almost free: animating scale.y from
 // 1 to 0 squashes the terrain into a flat, coloured map, without rebuilding anything.
-export function Terrain({ heights, resolution, size, depth, relief, debug }: TerrainProps) {
+export function Terrain({ heights, resolution, size, depth, relief, debug, colors: customColors }: TerrainProps) {
   const groupRef = useRef<Group>(null)
   const reliefNow = useRef(relief) // the animated value, chasing the `relief` target
 
@@ -38,19 +39,10 @@ export function Terrain({ heights, resolution, size, depth, relief, debug }: Ter
   const geometry = useMemo(() => {
     const geo = buildTerrainGeometry(heights, resolution, size)
 
-    const colors = new Float32Array(heights.length * 3)
-    const c = new Color()
-    for (let k = 0; k < heights.length; k++) {
-      const t = (heights[k] + 1) / 2 // [-1, 1] → [0, 1]
-      if (debug) c.setRGB(t, t, t)
-      else rampColor(t, c)
-      colors[k * 3] = c.r
-      colors[k * 3 + 1] = c.g
-      colors[k * 3 + 2] = c.b
-    }
+    const colors = customColors ?? heightColors(heights, debug)
     geo.setAttribute('color', new BufferAttribute(colors, 3))
     return geo
-  }, [heights, resolution, size, debug])
+  }, [heights, resolution, size, debug, customColors])
 
   // Free the old geometry's GPU memory when it's replaced (e.g. while dragging a slider).
   useEffect(() => () => geometry.dispose(), [geometry])
@@ -85,6 +77,21 @@ export function Terrain({ heights, resolution, size, depth, relief, debug }: Ter
       )}
     </group>
   )
+}
+
+// Default colours: the depth ramp, or (debug) the raw height as grayscale.
+function heightColors(heights: Float32Array, debug: boolean) {
+  const colors = new Float32Array(heights.length * 3)
+  const c = new Color()
+  for (let k = 0; k < heights.length; k++) {
+    const t = (heights[k] + 1) / 2 // [-1, 1] → [0, 1]
+    if (debug) c.setRGB(t, t, t)
+    else rampColor(t, c)
+    colors[k * 3] = c.r
+    colors[k * 3 + 1] = c.g
+    colors[k * 3 + 2] = c.b
+  }
+  return colors
 }
 
 // Find the two ramp stops around t and blend between them.

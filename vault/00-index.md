@@ -15,6 +15,7 @@
 - [[paths-and-networks]]: MST / Gabriel / k-nearest graphs, A* vs. Dijkstra over the terrain (Reef paths tab, modules 21–22)
 - [[shaders-caustics]]: custom GLSL shader, animated Worley caustics (Caustics tab, shaders topic)
 - [[erosion]]: droplet erosion as underwater sediment flows, live simulation (Erosion tab, module 10)
+- [[biomes-and-flood-fill]]: depth zones / habitats, tides, flood fill for enclosed bioluminescent bays (Biomes & tides tab, module 11)
 - [[voxels]]: rock/water voxel grid, density functions, visible-face meshing (Voxel reef tab, modules 7–8)
 - [[vector-fields]]: vector fields, advection, curl noise, vortex (Currents tab, modules 12–14)
 - [[excitation-and-player]]: the excitation rule, wake ellipsoid, jellyfish player, follow camera (Disturbance tab, core mechanic)
