@@ -13,6 +13,7 @@ export const player = {
   position: new Vector3(),
   velocity: new Vector3(),
   speed: 0, // |velocity|, cached once per frame
+  heading: 0, // yaw angle (radians around y); 0 faces −z. Bodies use it to face forward when idle.
 
   // How the player disturbs the water (set from the Disturbance sliders)
   shape: 'wake' as DisturbanceShape,

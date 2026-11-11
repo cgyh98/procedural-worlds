@@ -5,6 +5,7 @@ import { mulberry32 } from '../../lib/random'
 import { createGlowTexture } from '../../lib/glowTexture'
 import { player } from '../../systems/player'
 import { decayFactor, disturbance } from '../../systems/excitation'
+import { night } from '../../systems/night'
 import type { VectorField } from './fields'
 import type { SimClock } from './Scene'
 
@@ -123,7 +124,9 @@ export function Plankton({ field, clock, count, boxSize, pointSize, restGlow, fl
       exc[i] = e
 
       // 5. Brightness (a grey value; the material colour tints it cyan)
-      const b = restGlow + flowGlow * velocity.length() + e
+      // The resting part follows the night (systems/night.ts); the excitation does not,
+      // so on a dark night calm water is black and only your trail lights up.
+      const b = (restGlow + flowGlow * velocity.length()) * night.light + e
       // Colour = brightness × (blend from DIM to BRIGHT as brightness rises)
       const k = Math.min(Math.max((b - 0.3) / 1.2, 0), 1)
       colors[ix] = b * (DIM.r + (BRIGHT.r - DIM.r) * k)

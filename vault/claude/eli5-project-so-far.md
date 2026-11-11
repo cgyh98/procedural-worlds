@@ -1,6 +1,21 @@
-# ELI5: the project so far (and what's next)
+# ELI5: the procedural atlas, tab by tab
 
-Simple explanations of every piece of the world, in the order of the tabs. Useful as speaker notes for the presentation. Details are in the concept notes linked under each one.
+Simple explanations of every piece of the world, in tab order. Speaker notes for the presentation; details are in the concept notes linked under each one. The one-page overview is [[procedural-atlas-overview]].
+
+## 🌍 Ocean planet (module 6: spherical mapping) — the atlas cover
+**ELI5:** A computer can't draw a perfect ball, only lots of flat triangles glued together, like a soccer ball. *How* you glue them matters:
+- **UV sphere:** like the lines on a globe. Easy, but all the lines squeeze together at the poles, so the triangles there get tiny ("pinching").
+- **Cube sphere:** puff up a cube like a balloon. No poles, but the corners get crowded.
+- **Icosphere:** puff up a 20-sided die. The most even triangles.
+- **Fibonacci sphere:** place dots in a sunflower spiral so each gets the same space.
+
+Debug paints each triangle by size, so you can *see* the pinching (UV: the tiniest triangle is 7.7× smaller than the biggest; Fibonacci: only 1.6×).
+
+**Maps on a ball:** a flat world map is "how far around" (longitude) × "how far up" (latitude). Wrapping it onto the ball works, but the top and bottom rows get squished into tiny circles at the poles, and the left and right edges meet in a **seam**. That's why noise sampled *on the ball itself* looks better. The view switch **curls the flat map up into the planet** and back, like a sheet of paper wrapping around a ball that keeps shrinking.
+
+**The moon** goes around the planet. How much of it looks lit (its **phase**) depends on where it is compared with the sun: opposite the sun = full moon, between us and the sun = new moon. That number becomes the world's `moonPhase`.
+
+→ [[spherical-mapping-planet]]
 
 ## 🧱 Scene shell (modules 2–3: React + three.js)
 **ELI5:** Think of a theatre. **three.js** is the stage, the lights and the camera: it draws 3D things on the screen. **React** is the stage manager: it decides which props are on stage right now. Every tab is a different set of props swapped onto the same stage. The **sliders panel** is the lighting desk, and every slider has a little label (tooltip) explaining what it does.
@@ -18,6 +33,27 @@ Simple explanations of every piece of the world, in the order of the tabs. Usefu
 **fBm:** stack several layers of noise, big hills plus medium bumps plus tiny pebbles, the way real landscapes have detail at every size. **Ridged** flips the noise so soft hills become sharp crests: mid-ocean ridges.
 
 → [[heightmaps-and-noise]]
+
+## 🧊 Voxel reef (modules 7–8: voxels)
+**ELI5:** A pixel is a little square; a **voxel** is a little cube, like LEGO or Minecraft. Instead of "how tall is the ground here?", we ask every cube in a big box: **"rock or water?"** A heightmap can only make hills; voxels can make **caves and arches** (rock above water above rock). 3D noise decides rock vs. water.
+
+**Smart drawing:** a cube face that touches another rock cube is buried and nobody can see it, so we skip it. That skips **about 90% of all faces**. The build button fills the box layer by layer; the slice slider cuts it open to look inside the caves, where little lights live.
+
+→ [[voxels]]
+
+## 🏔️ Erosion (module 10)
+**ELI5:** Pour water down a sandcastle: it rushes down, scrapes sand where it's fast, and drops it where it slows down. Do that tens of thousands of times and you get channels and smooth fans of sand. Underwater the same thing happens with **turbidity currents**: underwater avalanches of muddy water that carve **submarine canyons**. Each tiny "flow" runs downhill, picks up sediment when fast and steep, and drops it when it slows. You can watch it happen live; debug paints **amber where it dug** and **cyan where it piled up**.
+
+Fun fact: the old CLASS_03 version had a sign mistake, so drops *slowed down* going downhill. Fixed.
+
+→ [[erosion]]
+
+## 🏝️ Biomes & tides (module 11: biomes, flood fill)
+**ELI5:** **Biomes:** give every spot on the map a label using simple rules: "deep and flat → abyssal plain", "shallow and gentle → reef", "too steep → cliff", "deep near a hot spot → vent field". Or just by depth: sunlit, twilight, midnight, abyss, trench.
+
+**Flood fill** is the paint-bucket tool: start somewhere and keep spreading to neighbours that match until you can't anymore. We pour the "open ocean" in from the edges of the map. Any water it **can't reach** is cut off from the sea: an **enclosed bay**. Real glowing bays (like Mosquito Bay in Puerto Rico) are exactly that, so our bays sparkle. Move the **tide** and bays open or close. Allowing diagonal moves (8 neighbours) lets water sneak through more gaps.
+
+→ [[biomes-and-flood-fill]]
 
 ## 🌊 Currents (modules 12–14: vector fields)
 **ELI5:** Imagine every spot in the water has a tiny arrow saying "the water goes *this* way, *this* fast". All those arrows together are a **vector field**. Drop a speck of plankton in, and each moment it takes a little step in the direction of the arrow under it. That's **advection**. Thousands of specks doing this make the invisible current visible.
@@ -55,15 +91,20 @@ Glowing sparks travel the roads: creatures migrating between reefs.
 
 → [[paths-and-networks]]
 
-## ✨ Disturbance (the core idea: "You are the disturbance")
-**ELI5:** You're a little glowing creature. Every plankton (and kelp) has a **"how stirred up am I?"** number. When you swim close, the number goes up (more if you're fast and very close); when you leave, it slowly sinks back to zero. **Brightness = that number.** So you leave a trail of light behind you that fades to black, exactly like real glowing plankton that flash when the water moves.
+## 🎨 Caustics (shaders)
+**ELI5:** The graphics card is a huge team of tiny painters, one per pixel, all painting at the same time. A **shader** is the instruction card every painter gets: "work out the colour of *your* pixel". When moonlight passes through wavy water it makes a dancing web of bright lines on the seafloor (**caustics**). Our card says: "find your nearest and second-nearest invisible dot; if you're about equally far from both, you're on a border, so glow." That's Worley noise on the GPU, with the dots drifting so the web dances. Debug shows the invisible cells behind the web.
 
-Swimming has **inertia and drag**: you speed up when you push and the water slows you down. The camera follows behind you, smoothly.
+→ [[shaders-caustics]]
+
+## ✨ Disturbance (the core idea: "You are the disturbance")
+**ELI5:** You're a glowing **jellyfish**. Every plankton (and kelp) has a **"how stirred up am I?"** number. When you swim close, the number goes up; when you leave, it slowly sinks back to zero. **Brightness = that number**, so you leave a trail of light that fades to black, like real glowing plankton.
+
+The stirred water is shaped like a **wake**: a long egg stretched out *behind* you, longer the faster you swim (the old version was a plain ball, because it only looked at distance). The jellyfish's bell pulses and leans where you go; each tentacle is a chain of dots that just follows the dot in front of it, so the tentacles trail behind naturally.
 
 → [[excitation-and-player]]
 
-## 🌍 World
-**ELI5:** All the finished pieces in one ocean: seafloor, kelp, reefs and migration routes, currents full of plankton, and you swimming through it, lighting it up.
+## 🌊 World
+**ELI5:** The dive view: all the pieces in one ocean. Seafloor with moonlit caustics, kelp, reefs and migration routes, currents full of plankton, and you, the jellyfish, lighting it up.
 
 ## ☁️ Backend (module 4: Firebase)
 **ELI5:** The app lives on Google's computers, so anyone can open it at **bioluminescent-ocean.web.app**. "Deploying" = uploading the newest version. Later, Firebase can also save things like your favourite world seeds.
@@ -71,14 +112,3 @@ Swimming has **inertia and drag**: you speed up when you push and the water slow
 → [[firebase-hosting-setup]]
 
 ---
-
-# Added since (2026-10-05)
-Shaders and voxels below are now built: see [[shaders-caustics]] and [[voxels]].
-
-# Next (at the time of writing)
-
-## 🎨 Shaders: moonlight caustics on the seafloor
-**ELI5:** The graphics card is a huge team of tiny painters, one per pixel, all painting at the same time. A **shader** is the instruction card every painter gets: "work out the color of *your* pixel". When moonlight passes through rippling water it makes a dancing web of bright lines on the seafloor (**caustics**, the blue web from the board). Our card says: "find your nearest and second-nearest invisible dot; if you're about equally far from both, you're on a border, so glow." That's **Worley noise** again, now on the GPU, with the dots drifting so the web dances. Sliders for size, speed, brightness, sharpness; debug shows the raw cells.
-
-## 🧊 Voxels: a reef with caves and arches
-**ELI5:** A pixel is a little square; a **voxel** is a little cube, like LEGO or Minecraft. Instead of "how tall is the ground here?", we ask every cube in a big box: "rock or water?" A heightmap can only make hills; voxels can make **caves and arches** (rock above water above rock). 3D noise decides rock vs. water, and we only draw the cube faces you can actually see (faces touching other rock are hidden), which saves most of the work. Debug shows the grid and how many faces were skipped.

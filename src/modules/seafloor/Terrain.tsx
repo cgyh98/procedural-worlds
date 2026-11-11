@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { BufferAttribute, Color, Group } from 'three'
+import { BufferAttribute, Color, Group, Mesh, ShaderMaterial } from 'three'
 import { buildTerrainGeometry } from './terrainGeometry'
 import { FLOOR_Y } from './useSeafloor'
+import { createPaintedTerrainMaterial } from './paintedTerrainMaterial'
+import { useWorld } from '../../store/useWorld'
+import { exposure } from '../atmosphere/moonLight'
+
+export type TerrainLook = 'original' | 'painted'
 
 // Depth colour ramp (cobalt palette from the cosmos board), from the deepest trench (t = 0) to the highest ridge (t = 1).
 // Dark at the bottom, lighter towards the ridges, so the map reads clearly but the
@@ -23,6 +28,7 @@ type TerrainProps = {
   relief: number // target: 1 = 3D terrain, 0 = flat 2D map (animated towards)
   debug: boolean
   colors?: Float32Array // optional per-vertex colours (e.g. a biome map) instead of the depth ramp
+  look?: TerrainLook // 'painted' = the hero art direction's toon style (a test)
 }
 
 // Turns a heightmap into a 3D mesh (shape from buildTerrainGeometry, plus colours).
@@ -30,8 +36,11 @@ type TerrainProps = {
 // The heights stay in [-1, 1] inside the geometry; the group's scale.y stretches them
 // to `depth`. That makes the 2D ↔ 3D transition almost free: animating scale.y from
 // 1 to 0 squashes the terrain into a flat, coloured map, without rebuilding anything.
-export function Terrain({ heights, resolution, size, depth, relief, debug, colors: customColors }: TerrainProps) {
+export function Terrain({ heights, resolution, size, depth, relief, debug, colors: customColors, look = 'original' }: TerrainProps) {
   const groupRef = useRef<Group>(null)
+  const paintedRef = useRef<Mesh>(null)
+  const painted = useMemo(() => createPaintedTerrainMaterial(), [])
+  useEffect(() => () => painted.dispose(), [painted])
   const reliefNow = useRef(relief) // the animated value, chasing the `relief` target
 
   // Build the mesh data: positions from the heights, plus vertex colours, either the
@@ -54,22 +63,32 @@ export function Terrain({ heights, resolution, size, depth, relief, debug, color
     reliefNow.current += (relief - reliefNow.current) * (1 - Math.exp(-3 * Math.min(delta, 0.05)))
     // Never exactly 0: a zero scale breaks the lighting maths (normals can't be inverted).
     group.scale.y = Math.max(reliefNow.current, 0.001) * depth
+    // Painted look: animate the caustics and follow the moon (reached through the mesh)
+    const m = paintedRef.current?.material as ShaderMaterial | undefined
+    if (m?.uniforms?.uTime) {
+      m.uniforms.uTime.value += Math.min(delta, 0.05)
+      m.uniforms.uExposure.value = exposure(useWorld.getState().moonPhase)
+    }
   })
 
   return (
     // Sunk below the origin so the open water (plankton, player) sits above it.
     <group ref={groupRef} position={[0, FLOOR_Y, 0]}>
-      <mesh geometry={geometry}>
-        <meshStandardMaterial
-          vertexColors
-          roughness={0.95}
-          metalness={0}
-          // Push the surface back a little so the debug wireframe draws cleanly on top.
-          polygonOffset
-          polygonOffsetFactor={1}
-          polygonOffsetUnits={1}
-        />
-      </mesh>
+      {look === 'painted' ? (
+        <mesh ref={paintedRef} geometry={geometry} material={painted} />
+      ) : (
+        <mesh geometry={geometry}>
+          <meshStandardMaterial
+            vertexColors
+            roughness={0.95}
+            metalness={0}
+            // Push the surface back a little so the debug wireframe draws cleanly on top.
+            polygonOffset
+            polygonOffsetFactor={1}
+            polygonOffsetUnits={1}
+          />
+        </mesh>
+      )}
       {debug && (
         <mesh geometry={geometry}>
           <meshBasicMaterial color="#ffb347" wireframe transparent opacity={0.12} />
@@ -84,7 +103,7 @@ function heightColors(heights: Float32Array, debug: boolean) {
   const colors = new Float32Array(heights.length * 3)
   const c = new Color()
   for (let k = 0; k < heights.length; k++) {
-    const t = (heights[k] + 1) / 2 // [-1, 1] → [0, 1]
+    const t = Math.min(Math.max((heights[k] + 1) / 2, 0), 1) // [-1, 1] → [0, 1] (the edge falloff can dip below −1)
     if (debug) c.setRGB(t, t, t)
     else rampColor(t, c)
     colors[k * 3] = c.r

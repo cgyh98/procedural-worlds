@@ -3,12 +3,15 @@ import { useFrame } from '@react-three/fiber'
 import { useControls } from 'leva'
 import { Vector3 } from 'three'
 import { player, type DisturbanceShape } from '../../systems/player'
+import { seafloor } from '../../systems/seafloor'
 import { useKeys } from './useKeys'
 
 const TURN_SPEED = 2.2 // radians per second
-const CAMERA_DISTANCE = 6 // behind the player
-const CAMERA_HEIGHT = 2.5 // above the player: look down at your trail, not along it
+const CAMERA_DISTANCE = 4.5 // behind the player (close enough to read the character)
+const CAMERA_HEIGHT = 1.8 // above the player: look down at your trail, not along it
 const CAMERA_FOLLOW = 4 // how quickly the camera catches up (higher = stiffer)
+const BODY_CLEARANCE = 0.9 // the player's centre stays this far above the ground (about half the hero's height)
+const CAMERA_CLEARANCE = 0.6 // the camera never dips closer than this to the ground
 
 // Scratch vectors, reused every frame so the loop never allocates.
 // Module-level is fine: there is only ever one player.
@@ -17,7 +20,7 @@ const cameraTarget = new Vector3()
 
 // The player's movement and camera: swims with the keyboard, writes the shared player
 // state (systems/player.ts) and drives the camera. It draws nothing itself: the body
-// is <Jellyfish>, the debug shape is <WakeDebug>. Mount it BEFORE them, so this frame's
+// is <Jellyfish> or <MoonChild>, the debug shape is <WakeDebug>. Mount it BEFORE them, so this frame's
 // position is ready when they draw.
 //
 //   W / S      swim forward / back
@@ -93,6 +96,7 @@ export function Player() {
     // ── Steering ──
     const turn = pressed('KeyA', 'ArrowLeft') - pressed('KeyD', 'ArrowRight')
     yaw.current += turn * TURN_SPEED * dt
+    player.heading = yaw.current
     // yaw = 0 faces −z (three.js "forward"); rotating by yaw around y:
     forward.set(-Math.sin(yaw.current), 0, -Math.cos(yaw.current))
 
@@ -108,6 +112,20 @@ export function Player() {
     player.velocity.multiplyScalar(Math.exp(-controls.drag * dt))
 
     player.position.addScaledVector(player.velocity, dt)
+
+    // ── Solid seafloor (a heightfield collision) ──
+    // The terrain is a heightmap: one height per (x, z). So "am I inside the ground?"
+    // is a single question: is my y below the ground's y right here? If so, put the
+    // player back on top and cancel the downward speed (the floor pushes back).
+    // Sideways speed is kept, so you glide along the slope instead of sticking.
+    const ground = seafloor.sampler
+    if (ground) {
+      const minY = ground.worldY(player.position.x, player.position.z) + BODY_CLEARANCE
+      if (player.position.y < minY) {
+        player.position.y = minY
+        if (player.velocity.y < 0) player.velocity.y = 0
+      }
+    }
     player.speed = player.velocity.length()
 
     // ── Follow camera ──
@@ -117,6 +135,11 @@ export function Player() {
     // Move a fraction of the way there each frame. 1 − e^(−k·dt) is the frame-rate
     // independent version of "close 10% of the gap per frame": a smooth trailing camera.
     camera.position.lerp(cameraTarget, 1 - Math.exp(-CAMERA_FOLLOW * dt))
+    // Keep the camera above the ground too (a ridge behind you would otherwise swallow it)
+    if (ground) {
+      const camMin = ground.worldY(camera.position.x, camera.position.z) + CAMERA_CLEARANCE
+      if (camera.position.y < camMin) camera.position.y = camMin
+    }
     camera.lookAt(player.position)
   })
 

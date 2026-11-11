@@ -1,4 +1,4 @@
-import { BufferGeometry, Color, Float32BufferAttribute } from 'three'
+import { BufferAttribute, BufferGeometry, Color, Float32BufferAttribute } from 'three'
 import { voxelIndex, type VoxelGrid } from './voxelGrid'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,39 +36,64 @@ export function buildVoxelMesh(g: VoxelGrid, voxelSize: number, visibleLayers: n
   const isRock = (x: number, y: number, z: number) =>
     x >= 0 && y >= 0 && z >= 0 && x < g.nx && z < g.nz && y < maxY && g.solid[voxelIndex(g, x, y, z)] === 1
 
-  const positions: number[] = []
-  const normals: number[] = []
-  const colors: number[] = []
-  const indices: number[] = []
   const stats: VoxelMeshStats = { rock: 0, drawn: 0, skipped: 0 }
-  const c = new Color()
-  // The grid is centred on x/z; its bottom sits at y = 0 of the parent group.
-  const ox = (-g.nx / 2) * voxelSize
-  const oz = (-g.nz / 2) * voxelSize
 
+  // Pass 1: count the visible faces, so the arrays can be allocated once at the exact
+  // size. (Growing JavaScript arrays number by number is slow for ~100k faces.)
   for (let y = 0; y < maxY; y++)
     for (let z = 0; z < g.nz; z++)
       for (let x = 0; x < g.nx; x++) {
         if (!isRock(x, y, z)) continue
         stats.rock++
+        for (const face of FACES) {
+          if (isRock(x + face.d[0], y + face.d[1], z + face.d[2])) stats.skipped++ // buried
+          else stats.drawn++
+        }
+      }
+
+  // Pass 2: fill typed arrays: 4 corners per face, 2 triangles (6 indices) per face
+  const positions = new Float32Array(stats.drawn * 12)
+  const normals = new Float32Array(stats.drawn * 12)
+  const colors = new Float32Array(stats.drawn * 12)
+  const indices = new Uint32Array(stats.drawn * 6)
+  const c = new Color()
+  // The grid is centred on x/z; its bottom sits at y = 0 of the parent group.
+  const ox = (-g.nx / 2) * voxelSize
+  const oz = (-g.nz / 2) * voxelSize
+  let v = 0 // vertices written
+  let t = 0 // indices written
+
+  for (let y = 0; y < maxY; y++)
+    for (let z = 0; z < g.nz; z++)
+      for (let x = 0; x < g.nx; x++) {
+        if (!isRock(x, y, z)) continue
         // Colour by height, with a small per-voxel variation so single cubes read
         c.copy(BOTTOM).lerp(TOP, y / (g.ny - 1))
         c.multiplyScalar(0.85 + 0.3 * hash3(x, y, z))
 
         for (const face of FACES) {
-          if (isRock(x + face.d[0], y + face.d[1], z + face.d[2])) {
-            stats.skipped++ // buried: touching rock on this side
-            continue
-          }
-          stats.drawn++
-          const base = positions.length / 3
+          if (isRock(x + face.d[0], y + face.d[1], z + face.d[2])) continue
+          const base = v
           for (const [cx, cy, cz] of face.corners) {
-            positions.push(ox + (x + cx) * voxelSize, (y + cy) * voxelSize, oz + (z + cz) * voxelSize)
-            normals.push(face.d[0], face.d[1], face.d[2])
-            colors.push(c.r, c.g, c.b)
+            const o = v * 3
+            positions[o] = ox + (x + cx) * voxelSize
+            positions[o + 1] = (y + cy) * voxelSize
+            positions[o + 2] = oz + (z + cz) * voxelSize
+            normals[o] = face.d[0]
+            normals[o + 1] = face.d[1]
+            normals[o + 2] = face.d[2]
+            colors[o] = c.r
+            colors[o + 1] = c.g
+            colors[o + 2] = c.b
+            v++
           }
           // Two triangles per square face
-          indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
+          indices[t++] = base
+          indices[t++] = base + 1
+          indices[t++] = base + 2
+          indices[t++] = base
+          indices[t++] = base + 2
+          indices[t++] = base + 3
         }
       }
 
@@ -76,7 +101,7 @@ export function buildVoxelMesh(g: VoxelGrid, voxelSize: number, visibleLayers: n
   geo.setAttribute('position', new Float32BufferAttribute(positions, 3))
   geo.setAttribute('normal', new Float32BufferAttribute(normals, 3))
   geo.setAttribute('color', new Float32BufferAttribute(colors, 3))
-  geo.setIndex(indices)
+  geo.setIndex(new BufferAttribute(indices, 1))
   return { geometry: geo, stats }
 }
 

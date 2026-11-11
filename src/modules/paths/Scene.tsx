@@ -127,7 +127,7 @@ export function PathsScene({ debug }: ModuleSceneProps) {
     <>
       {/* The kelp-covered seafloor, without its own markers or debug: this tab's debug is the network */}
       <DistributionsScene debug={false} embedded />
-      <ReefNetwork nodes={nodes} routes={routes} sparksPerRoute={mig.sparks} speed={mig.speed} />
+      <ReefNetwork nodes={nodes} routes={routes} edges={edges} sparksPerRoute={mig.sparks} speed={mig.speed} />
       {debug && <NetworkDebug nodes={nodes} edges={edges} visited={visited} />}
     </>
   )

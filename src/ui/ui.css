@@ -120,3 +120,13 @@
     max-width: none;
   }
 }
+
+/* The Play button sits at the right end of the tab bar */
+.tab-play {
+  margin-left: auto;
+  color: #66e0a0;
+  border: 1px solid rgba(102, 224, 160, 0.35);
+}
+.tab-play:hover {
+  background: rgba(102, 224, 160, 0.1);
+}

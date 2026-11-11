@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Color, LineSegments, type BufferAttribute } from 'three'
 import { decayFactor, disturbance } from '../../systems/excitation'
+import { night } from '../../systems/night'
 import { player } from '../../systems/player'
 
 // One kelp strand: where it's rooted and how it moves.
@@ -68,7 +69,7 @@ export function Kelp({ strands, sway, glow, recovery }: KelpProps) {
       const dz = st.z - player.position.z
       const e = Math.min((exc[s] + disturbance(dx, dy, dz) * dt) * keep, 2)
       exc[s] = e
-      const brightness = glow + e * 2
+      const brightness = glow * night.light + e * 2 // resting glow follows the night, your disturbance doesn't
 
       for (let k = 0; k < SEGMENTS; k++) {
         // Both ends of line piece k: fractions f0, f1 along the strand

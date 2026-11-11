@@ -5,6 +5,7 @@ import { buildTerrainGeometry } from '../seafloor/terrainGeometry'
 import { FLOOR_Y, type Seafloor } from '../seafloor/useSeafloor'
 import { causticsFragmentShader, causticsVertexShader, createCausticsUniforms } from './causticsShader'
 import type { CausticsSettings } from './useCaustics'
+import { night } from '../../systems/night'
 
 // The caustics, drawn as a second copy of the seafloor's shape right on top of it.
 // Its shader outputs only light, and AdditiveBlending ADDS that light to whatever
@@ -39,7 +40,7 @@ export function CausticsLayer({ seafloor, settings, debug }: { seafloor: Seafloo
     u.uTime.value = clock.elapsedTime
     u.uScale.value = settings.size
     u.uSpeed.value = settings.speed
-    u.uIntensity.value = settings.intensity
+    u.uIntensity.value = settings.intensity * night.light // moonlight caustics fade on a dark night
     u.uSharpness.value = settings.sharpness
     u.uHeightBoost.value = settings.heightBoost
     u.uLayered.value = settings.mode === 'layered' ? 1 : 0

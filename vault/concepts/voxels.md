@@ -46,3 +46,21 @@ Measured on the default seabed: **~91–93% of faces skipped** (e.g. 9,730 drawn
 ## Notes
 - The face counts were first a floating HTML label (drei `<Html>`), which logged a React 19 unmount warning when toggled; they now live as read-only fields in the slider panel.
 - Not in the World yet (to keep it readable). Voxels over the spherical planet (module 8) are a later step.
+
+## Update (2026-10-08): higher resolution
+- **Resolution** now goes up to **128** (1M voxels); default **96** (442k).
+- **Scale in world units:** the noise scale used to be measured in voxels, so raising the resolution gave a *different*, busier reef. Now it's in world units, so more voxels = the **same reef, finer**. Checked: rock fraction 41.9% / 40.7% / 40.5% at 48 / 96 / 128.
+- **Faster mesher:** two passes (count visible faces → allocate exact typed arrays → fill) instead of growing JS arrays: 109 → 39 ms at 128, so the build animation and slice stay usable.
+- **Cave glow** chance scales by (48 / n)³ so the density of glowing life per volume stays the same.
+
+| Resolution | Voxels | Faces drawn | Skipped |
+|---|---|---|---|
+| 48 | 55k | 13k | 90% |
+| 96 | 442k | 55k | 95% |
+| 128 | 1M | 98k | 96% |
+
+The finer the grid, the larger the share of buried faces, so culling matters more as resolution grows.
+
+| 48 | 96 | 128 |
+|---|---|---|
+| ![[2026-10-08-voxels-48.png]] | ![[2026-10-08-voxels-96.png]] | ![[2026-10-08-voxels-128.png]] |

@@ -19,12 +19,12 @@ export function VoxelScene({ debug }: ModuleSceneProps) {
       hint: 'The density function that decides rock vs. water for every voxel. Seabed: solid ground minus 3D noise (caves, arches, overhangs). 3D noise: floating Swiss-cheese reef. Spheres: the simplest rule, rock inside a few balls.',
     },
     resolution: {
-      value: 48, min: 16, max: 64, step: 8,
-      hint: 'Voxels along x and z (y gets half). The box stays the same size, so more voxels = smaller cubes. Cost grows with the cube of this.',
+      value: 96, min: 16, max: 128, step: 8,
+      hint: 'Voxels along x and z (y gets half). The box stays the same size, so more voxels = smaller cubes and finer detail of the same reef. Cost grows with the cube of this: 48 ≈ 55k voxels, 96 ≈ 440k, 128 ≈ 1M.',
     },
     scale: {
-      value: 9, min: 2, max: 24, step: 0.5,
-      hint: 'Size of the noise features, in voxels: how big the caves and rock chunks are.',
+      value: 4.5, min: 1, max: 12, step: 0.1,
+      hint: 'Size of the noise features in world units: how big the caves and rock chunks are. Independent of resolution.',
     },
     threshold: {
       value: 0, min: -0.6, max: 0.6, step: 0.01,
@@ -60,12 +60,12 @@ export function VoxelScene({ debug }: ModuleSceneProps) {
     caveGlow: {
       label: 'cave glow',
       value: 0.04, min: 0, max: 0.2, step: 0.005,
-      hint: 'Chance that a sheltered water voxel (rock somewhere above it) holds glowing life.',
+      hint: 'How much glowing life hides in sheltered water (rock somewhere above it). Scaled so the density stays the same at any resolution.',
     },
   })
 
   const grid = useMemo(
-    () => generateVoxels({ shape: reef.shape, n: reef.resolution, scale: reef.scale, threshold: reef.threshold, ground: reef.ground, seed: reef.seed }),
+    () => generateVoxels({ shape: reef.shape, n: reef.resolution, width: WIDTH, scale: reef.scale, threshold: reef.threshold, ground: reef.ground, seed: reef.seed }),
     [reef.shape, reef.resolution, reef.scale, reef.threshold, reef.ground, reef.seed],
   )
   const voxelSize = WIDTH / grid.nx
@@ -108,6 +108,10 @@ export function VoxelScene({ debug }: ModuleSceneProps) {
     })
   }, [grid, stats, setStats])
 
+  // Keep the amount of glowing life per unit of volume the same at any resolution:
+  // twice the voxels per side = 8× the voxels, so each gets 1/8 of the chance.
+  const glowChance = view.caveGlow * (48 / grid.nx) ** 3
+
   // Glowing life in sheltered water: water voxels with rock somewhere above them.
   // Scan each column from the top down, remembering whether we've passed rock yet.
   const glow = useMemo(() => {
@@ -117,14 +121,14 @@ export function VoxelScene({ debug }: ModuleSceneProps) {
         let sheltered = false
         for (let y = grid.ny - 1; y >= 0; y--) {
           if (grid.solid[voxelIndex(grid, x, y, z)]) sheltered = true
-          else if (sheltered && y < maxY && hash3(x, y, z) < view.caveGlow)
+          else if (sheltered && y < maxY && hash3(x, y, z) < glowChance)
             pts.push((x + 0.5 - grid.nx / 2) * voxelSize, (y + 0.5) * voxelSize, (z + 0.5 - grid.nz / 2) * voxelSize)
         }
       }
     const geo = new BufferGeometry()
     geo.setAttribute('position', new Float32BufferAttribute(pts, 3))
     return geo
-  }, [grid, voxelSize, maxY, view.caveGlow])
+  }, [grid, voxelSize, maxY, glowChance])
   useEffect(() => () => glow.dispose(), [glow])
 
   const texture = useMemo(() => createGlowTexture(), [])

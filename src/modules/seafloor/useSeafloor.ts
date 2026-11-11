@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useControls } from 'leva'
 import { generateHeightmap, type HeightStyle, type NoiseType } from './heightmap'
+import { seafloor } from '../../systems/seafloor'
 
 export const MAP_SIZE = 40 // world units across
 export const FLOOR_Y = -6 // the seafloor sits below the origin, so open water is above it
@@ -52,6 +53,11 @@ export function useSeafloor() {
       value: 7, min: 1, max: 999, step: 1,
       hint: 'Seed for the noise. Same seed = same seafloor every time.',
     },
+    edge: {
+      label: 'edge falloff',
+      value: 0.35, min: 0, max: 0.8, step: 0.01,
+      hint: 'Island mask: the outer ring of the map slopes down into the abyss, so the seafloor reads as an underwater mountain instead of a slab with a cut edge. The value is how wide that ring is, as a fraction of the map radius. 0 = off (raw noise up to the edge).',
+    },
     resolution: {
       value: 160, min: 32, max: 256, step: 16,
       hint: 'Vertices per side of the heightmap grid. More = finer detail, but slower to rebuild (resolution² samples × octaves).',
@@ -69,7 +75,7 @@ export function useSeafloor() {
 
   // Regenerate the heightmap only when a generation parameter changes.
   // (depth and view don't need a rebuild: they only scale the finished mesh.)
-  const heights = useMemo(
+  const raw = useMemo(
     () =>
       generateHeightmap({
         resolution: map.resolution,
@@ -85,17 +91,30 @@ export function useSeafloor() {
     [map.resolution, map.noise, map.style, map.scale, map.octaves, map.persistence, map.lacunarity, map.seed],
   )
 
+  // The edge falloff is a cheap separate pass, so sliding it never re-runs the noise.
+  const heights = useMemo(() => applyEdgeFalloff(raw, map.resolution, map.edge), [raw, map.resolution, map.edge])
+
   const sampler = useMemo(
     () => createSampler(heights, map.resolution, MAP_SIZE, map.depth),
     [heights, map.resolution, map.depth],
   )
+
+  // Share the sampler with per-frame systems (the player uses it as solid ground).
+  // In the 2D map view the relief is flat, so there is nothing to collide with.
+  const is2D = view.mode === '2D map'
+  useEffect(() => {
+    seafloor.sampler = is2D ? null : sampler
+    return () => {
+      if (seafloor.sampler === sampler) seafloor.sampler = null
+    }
+  }, [sampler, is2D])
 
   return {
     heights,
     resolution: map.resolution,
     size: MAP_SIZE,
     depth: map.depth,
-    is2D: view.mode === '2D map',
+    is2D,
     sampler,
   }
 }
@@ -134,4 +153,42 @@ function createSampler(heights: Float32Array, n: number, size: number, depth: nu
       return (Math.atan(Math.hypot(dhdx, dhdz)) * 180) / Math.PI
     },
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Edge falloff (an "island mask")
+//
+// A heightmap is finite: past its border there is simply nothing, and a cut edge is
+// easy to spot. The classic trick (used for procedural islands) is to multiply in a
+// MASK that depends on the distance from the centre: 0 in the middle (heights
+// untouched), rising to 1 at the border. Here the mask pushes heights DOWN, so the
+// terrain slopes away into the deep and fades into the fog: an underwater mountain
+// (a seamount) surrounded by abyss.
+//
+//   d    = distance from the centre / map radius     (0 centre … 1 edge … 1.41 corner)
+//   mask = smoothstep(1 − width, 1, d)               (0 inside, smooth ramp, 1 outside)
+//   h'   = h − mask × DROP
+//
+// Heights may now go below −1 (deeper than any trench): that's the abyss.
+// TEMPORARY: the stand-in for an infinite ocean until chunk streaming (module 24)
+// replaces it after the 2026-11-11 presentation (vault/decisions/infinite-seafloor.md).
+// ─────────────────────────────────────────────────────────────────────────────
+const DROP = 3 // how far the rim sinks, in normalized height units (× depth in world units)
+
+function applyEdgeFalloff(raw: Float32Array, n: number, width: number): Float32Array {
+  if (width <= 0) return raw
+  const out = new Float32Array(raw.length)
+  const inner = 1 - width
+  for (let j = 0; j < n; j++) {
+    for (let i = 0; i < n; i++) {
+      // grid index → −1…1 on each axis, then the radial distance
+      const x = (i / (n - 1)) * 2 - 1
+      const z = (j / (n - 1)) * 2 - 1
+      const d = Math.hypot(x, z)
+      const t = Math.min(Math.max((d - inner) / width, 0), 1)
+      const mask = t * t * (3 - 2 * t) // smoothstep
+      out[j * n + i] = raw[j * n + i] - mask * DROP
+    }
+  }
+  return out
 }

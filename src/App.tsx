@@ -1,12 +1,16 @@
 import { useEffect } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { EffectComposer, Bloom } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing'
+import { BlendFunction } from 'postprocessing'
 import { Leva, useControls } from 'leva'
 import { findModule } from './modules/registry'
 import { useWorld } from './store/useWorld'
 import { TabBar } from './ui/TabBar'
 import { ConceptCard } from './ui/ConceptCard'
+import { usePlay, isPlaying } from './play/usePlay'
+import { PlayDirector } from './play/PlayDirector'
+import { PlayOverlay } from './play/PlayOverlay'
 import './ui/ui.css'
 
 // The ocean's base colour: almost black, with a hint of blue.
@@ -21,6 +25,10 @@ const DEFAULT_CAMERA: [number, number, number] = [11, 7, 15]
 function App() {
   const activeModule = findModule(useWorld((s) => s.activeModuleId))
   const { Scene } = activeModule
+  // Play mode hides the lab UI (tabs, sliders, concept card, debug) and lets the
+  // story director drive the camera.
+  const playing = isPlaying(usePlay((s) => s.stage))
+  const playRun = usePlay((s) => s.run)
 
   // Shared controls, shown above each module's own sliders.
   // `hint` shows up as a tooltip, one of the class requirements for every control.
@@ -42,11 +50,15 @@ function App() {
       value: 0.8, min: 0, max: 2, step: 0.01,
       hint: 'Only pixels brighter than this glow. Raise it so only the most stirred-up plankton bloom.',
     },
+    grain: {
+      value: 0.12, min: 0, max: 0.6, step: 0.01,
+      hint: 'Paper / print grain over the whole frame (overlay blend), so it feels painted or printed rather than digital-clean. 0 = off.',
+    },
   })
 
   return (
     <div className="app">
-      <TabBar activeId={activeModule.id} />
+      {!playing && <TabBar activeId={activeModule.id} />}
 
       {/* <Canvas> creates the three.js renderer, scene and camera for us,
           and runs the render loop every frame. One canvas for the whole app. */}
@@ -60,23 +72,27 @@ function App() {
 
         {/* The active tab. `key` makes React fully unmount the old scene and mount the new one
             when the tab changes, so each module starts clean and its sliders leave the panel. */}
-        <Scene key={`scene-${activeModule.id}`} debug={debug} />
+        <Scene key={`scene-${activeModule.id}-${playRun}`} debug={debug && !playing} />
+        {playing && <PlayDirector />}
 
         {/* Drag to orbit, scroll to zoom, unless the tab drives the camera itself (the player). */}
         {/* Keyed by tab so its orbit target resets to the origin on every switch. */}
-        {!activeModule.controlsCamera && <OrbitControls key={`orbit-${activeModule.id}`} makeDefault />}
+        {!activeModule.controlsCamera && !playing && <OrbitControls key={`orbit-${activeModule.id}`} makeDefault />}
 
         {/* Post-processing: runs after the scene is drawn, on the finished image. */}
         <EffectComposer>
           <Bloom mipmapBlur intensity={glow.intensity} luminanceThreshold={glow.threshold} luminanceSmoothing={0.2} />
+          {/* Grain: per-pixel random noise, blended as an overlay (art direction: printed / painted feel) */}
+          <Noise premultiply blendFunction={BlendFunction.OVERLAY} opacity={glow.grain} />
         </EffectComposer>
       </Canvas>
 
       <div className="controls">
-        <Leva fill />
+        <Leva fill hidden={playing} />
       </div>
 
-      <ConceptCard key={activeModule.id} module={activeModule} />
+      {!playing && <ConceptCard key={activeModule.id} module={activeModule} />}
+      {playing && <PlayOverlay />}
     </div>
   )
 }

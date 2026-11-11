@@ -1,0 +1,119 @@
+/* Play mode overlay: quiet, centred, no heavy UI. Serif italic for the story voice. */
+.play {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  color: #e6f4ff;
+}
+.play-curtain {
+  position: absolute;
+  inset: 0;
+  background: #03061c; /* deep navy, the new-moon water */
+  opacity: 0;
+  transition: opacity 1.1s ease;
+}
+.play-curtain.on {
+  opacity: 1;
+}
+.play-title,
+.play-end {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: auto;
+  animation: play-fade-in 2.5s ease both;
+}
+.play-title { cursor: pointer; }
+.play-title h1,
+.play-end h1 {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(28px, 4vw, 54px);
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 24px rgba(127, 230, 255, 0.45);
+}
+.play-sub {
+  margin: 14px 0 28px;
+  color: #9fb8cc;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.play-button {
+  pointer-events: auto;
+  padding: 10px 28px;
+  border: 1px solid rgba(191, 238, 247, 0.5);
+  border-radius: 999px;
+  background: rgba(191, 238, 247, 0.08);
+  color: #e6f4ff;
+  font: inherit;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 12px;
+  cursor: pointer;
+}
+.play-button:hover { background: rgba(191, 238, 247, 0.18); }
+.play-button.ghost { border-color: rgba(191, 238, 247, 0.2); background: transparent; }
+.play-actions { display: flex; gap: 12px; }
+.play-subtitle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12%;
+  margin: 0;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: clamp(18px, 2vw, 26px);
+  text-shadow: 0 0 14px rgba(3, 6, 28, 0.9);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.play-subtitle.on {
+  animation: play-fade-in 1.4s ease both;
+  opacity: 1;
+}
+.play-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  color: #5d7488;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  animation: play-hint 14s ease both;
+}
+/* Reef counter as moon phases (crescent → full), top right */
+.play-moons {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  display: flex;
+  gap: 8px;
+}
+.moon-icon {
+  width: 20px;
+  height: 20px;
+  transition: filter 1.2s ease;
+}
+.moon-icon .disk { fill: rgba(191, 238, 247, 0.04); stroke: rgba(191, 238, 247, 0.22); stroke-width: 1; }
+.moon-icon .lit { fill: rgba(191, 238, 247, 0.12); transition: fill 1.2s ease; }
+.moon-icon.awake .lit { fill: #e6f6ff; }
+.moon-icon.awake { filter: drop-shadow(0 0 5px rgba(191, 238, 247, 0.85)); }
+@keyframes play-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes play-hint {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}

@@ -1,10 +1,12 @@
 import { modules } from '../modules/registry'
 import { useWorld } from '../store/useWorld'
+import { usePlay } from '../play/usePlay'
 
 // The row of tabs across the top. Plain HTML buttons, styled in ui.css.
 // The labels come straight from the registry, so a new module appears here automatically.
 export function TabBar({ activeId }: { activeId: string }) {
   const setActiveModule = useWorld((s) => s.setActiveModule)
+  const startPlay = usePlay((s) => s.start)
 
   return (
     <nav className="tabbar">
@@ -22,6 +24,10 @@ export function TabBar({ activeId }: { activeId: string }) {
           {m.title}
         </button>
       ))}
+      {/* Play mode: the atlas as one night, full screen */}
+      <button className="tab tab-play" onClick={startPlay} title="Play the night: planet → dive → wake the reefs → moonrise">
+        ▶ Play
+      </button>
     </nav>
   )
 }

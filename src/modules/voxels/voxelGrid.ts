@@ -18,7 +18,8 @@ export type VoxelShape = 'seabed' | 'caves' | 'spheres'
 export type VoxelParams = {
   shape: VoxelShape
   n: number // voxels along x and z (y gets n / 2)
-  scale: number // noise feature size, in voxels
+  width: number // world size of the box along x and z
+  scale: number // noise feature size, in WORLD units (so more voxels = same shapes, finer)
   threshold: number // density above this → rock
   ground: number // seabed only: height of the ground surface, 0 (bottom) … 1 (top)
   seed: number
@@ -52,8 +53,10 @@ export function generateVoxels(p: VoxelParams): VoxelGrid {
 function densityFunction(p: VoxelParams, nx: number, ny: number, nz: number) {
   const noise = createPerlin3D(p.seed)
   // 3 octaves of 3D noise (fBm, as for the seafloor, but in 3D)
+  // Voxel index → world units → noise space. Measuring the scale in world units means a
+  // higher resolution samples the SAME noise more finely, instead of a different reef.
+  const f = p.width / nx / p.scale
   const fbm3 = (x: number, y: number, z: number) => {
-    const f = 1 / p.scale
     return (
       noise(x * f, y * f, z * f) +
       0.5 * noise(x * f * 2, y * f * 2, z * f * 2) +

@@ -42,3 +42,6 @@ firebase-debug.log
 # To publish a chosen screenshot anyway: git add -f vault/assets/<file>
 vault/assets/*
 !vault/assets/.gitkeep
+
+# PDF exports of reports (they embed the inspiration board: reference images by other artists)
+vault/*.pdf
