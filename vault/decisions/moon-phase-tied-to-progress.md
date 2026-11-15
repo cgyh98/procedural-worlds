@@ -1,5 +1,7 @@
 # Decision: the moon phase is tied to progress (in play mode)
 
+> **Removed 2026-11-15** after professor feedback: the project stays in the atlas direction. See [[atlas-over-game]]. Kept as history; the code is in commit 5622774.
+
 **Context.** Open question since the start: is `moonPhase` player-controlled, time-based, or tied to progress?
 
 **Options.**

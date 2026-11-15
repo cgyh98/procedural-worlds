@@ -1,5 +1,7 @@
 # Play mode: one night
 
+> **Removed 2026-11-15** after professor feedback: the project stays in the atlas direction. See [[atlas-over-game]]. Kept as history; the code is in commit 5622774.
+
 Built 2026-11-10 for the progress presentation. **▶ Play** at the right of the tab bar. Code: `src/play/` (+ `systems/reefs.ts`, sleeping reefs in `paths/ReefNetwork.tsx`).
 
 ## The flow

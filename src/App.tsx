@@ -8,9 +8,6 @@ import { findModule } from './modules/registry'
 import { useWorld } from './store/useWorld'
 import { TabBar } from './ui/TabBar'
 import { ConceptCard } from './ui/ConceptCard'
-import { usePlay, isPlaying } from './play/usePlay'
-import { PlayDirector } from './play/PlayDirector'
-import { PlayOverlay } from './play/PlayOverlay'
 import './ui/ui.css'
 
 // The ocean's base colour: almost black, with a hint of blue.
@@ -25,10 +22,6 @@ const DEFAULT_CAMERA: [number, number, number] = [11, 7, 15]
 function App() {
   const activeModule = findModule(useWorld((s) => s.activeModuleId))
   const { Scene } = activeModule
-  // Play mode hides the lab UI (tabs, sliders, concept card, debug) and lets the
-  // story director drive the camera.
-  const playing = isPlaying(usePlay((s) => s.stage))
-  const playRun = usePlay((s) => s.run)
 
   // Shared controls, shown above each module's own sliders.
   // `hint` shows up as a tooltip, one of the class requirements for every control.
@@ -58,7 +51,7 @@ function App() {
 
   return (
     <div className="app">
-      {!playing && <TabBar activeId={activeModule.id} />}
+      <TabBar activeId={activeModule.id} />
 
       {/* <Canvas> creates the three.js renderer, scene and camera for us,
           and runs the render loop every frame. One canvas for the whole app. */}
@@ -72,12 +65,11 @@ function App() {
 
         {/* The active tab. `key` makes React fully unmount the old scene and mount the new one
             when the tab changes, so each module starts clean and its sliders leave the panel. */}
-        <Scene key={`scene-${activeModule.id}-${playRun}`} debug={debug && !playing} />
-        {playing && <PlayDirector />}
+        <Scene key={`scene-${activeModule.id}`} debug={debug} />
 
         {/* Drag to orbit, scroll to zoom, unless the tab drives the camera itself (the player). */}
         {/* Keyed by tab so its orbit target resets to the origin on every switch. */}
-        {!activeModule.controlsCamera && !playing && <OrbitControls key={`orbit-${activeModule.id}`} makeDefault />}
+        {!activeModule.controlsCamera && <OrbitControls key={`orbit-${activeModule.id}`} makeDefault />}
 
         {/* Post-processing: runs after the scene is drawn, on the finished image. */}
         <EffectComposer>
@@ -88,11 +80,10 @@ function App() {
       </Canvas>
 
       <div className="controls">
-        <Leva fill hidden={playing} />
+        <Leva fill />
       </div>
 
-      {!playing && <ConceptCard key={activeModule.id} module={activeModule} />}
-      {playing && <PlayOverlay />}
+      <ConceptCard key={activeModule.id} module={activeModule} />
     </div>
   )
 }

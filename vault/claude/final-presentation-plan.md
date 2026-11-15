@@ -1,5 +1,7 @@
 # Final presentation plan
 
+> **Update 2026-11-15:** the story/game direction (the night, play mode) was dropped after professor feedback; the final stays an atlas of concept labs + the World tab. See [[atlas-over-game]].
+
 Written 2026-11-09. **Progress presentation: 2026-11-11. Final due: ~2026-11-23.**
 
 Goal for the final: one ocean where every system feeds the next and the moon conducts them all. *Seafloor → biomes → life → creatures; moon → light, tides, behaviour; you → disturbance.*

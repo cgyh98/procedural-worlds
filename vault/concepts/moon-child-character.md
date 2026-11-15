@@ -37,3 +37,6 @@ The separate lathe pieces became **one procedural skinned mesh** (bodyRig.ts): r
 - NPC species from the same parts (jellyfish, fireworm, lanternfish).
 
 Related: [[excitation-and-player]], [[final-presentation-plan]], [[shaders-caustics]]
+
+## Update (2026-11-15)
+No longer the default player: the jellyfish is back (with a painted-illustration style that reuses this character's shader, outline and ribbons). The moon child stays selectable under Player body. See [[atlas-over-game]].

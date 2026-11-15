@@ -41,9 +41,9 @@ export function Atmosphere() {
       hint: 'How dark the night is without the moon. Everything that is lit or glowing on its own (seafloor, caustics, calm plankton, kelp, the water colour) is dimmed by this; the glow YOU cause is not. Resting light = (1 − darkness) at new moon, rising to full at full moon. 0 = no dimming.',
     },
     reveal: {
-      label: 'child light',
+      label: 'player light',
       value: 1, min: 0, max: 3, step: 0.05,
-      hint: 'The moon child\'s own light: it lights the seafloor around her, reaching further the faster she swims. It only shows when the night is dark (it fades as the moon rises), so the world appears where she goes. Line of sight in its simplest form: you see what is near you and lit.',
+      hint: 'The player\'s own light: it lights the seafloor around you, reaching further the faster you swim. It only shows when the night is dark (it fades as the moon rises), so the world appears where you go. Line of sight in its simplest form: you see what is near you and lit.',
     },
     rays: { label: 'god rays', value: 1, min: 0, max: 3, step: 0.05, hint: 'Brightness of the light shafts from the surface (they also scale with the moon).' },
     bubbles: { value: 1, min: 0, max: 3, step: 0.05, hint: 'How many bubbles you stir up when you swim (more when faster).' },
@@ -97,13 +97,12 @@ export function Atmosphere() {
     const moon = useWorld.getState().moonPhase
     // Resting light: (1 − darkness) at new moon, 1 at full moon. moon² instead of moon:
     // a thin moon barely lights the sea; the light really arrives near full moon.
-    const darkness = Math.max(controls.darkness, night.minDarkness)
-    const light = 1 - darkness * (1 - moon * moon)
+    const light = 1 - controls.darkness * (1 - moon * moon)
     night.light = light
     surfaceColor(moon, tmpSurface)
     deepColor(moon, tmpDeep)
     // The water itself darkens too, but never to pure black (the art direction)
-    const water = night.waterFloor + (1 - night.waterFloor) * light
+    const water = 0.3 + 0.7 * light
     tmpSurface.multiplyScalar(water)
     tmpDeep.multiplyScalar(water)
     const m = domeRef.current?.material as ShaderMaterial | undefined

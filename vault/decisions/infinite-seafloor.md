@@ -33,3 +33,6 @@ Side effect: fewer reefs fit on the smaller seamount (6 instead of 13 with the d
 - [ ] Optional LOD (module 23): fewer vertices for far chunks.
 
 Related: [[play-mode]], [[final-presentation-plan]]
+
+## Update (2026-11-15)
+Play mode was removed ([[atlas-over-game]]), so the play fog and the play boundary are gone. The edge-falloff slider stays (Seafloor map panel) until chunk streaming replaces it.

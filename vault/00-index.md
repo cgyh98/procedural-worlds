@@ -11,6 +11,7 @@
 - [[2026-10-08]]: voxel resolution
 - [[2026-11-10]]: final plan, story, moon child
 - [[2026-11-11]]: solid seafloor, hiding the map edge
+- [[2026-11-15]]: back to the atlas: game removed, jellyfish with a painted style
 
 ## Concepts
 - [[spherical-mapping-planet]]: four sphere constructions, lon/lat mapping, map ↔ planet animation, moon phase (Ocean planet tab, module 6: the atlas cover)
@@ -33,6 +34,7 @@
 - [[ui-tabs-per-module]] (accepted): one lab tab per module + a combined World tab
 - [[two-scale-ocean-planet]] (accepted): ocean planet as the atlas cover + dive view
 - [[moon-phase-tied-to-progress]] (accepted): slider in the labs, reefs woken in play mode
+- [[atlas-over-game]] (accepted): drop the play mode, stay an atlas; jellyfish player with a painted-style option
 - [[infinite-seafloor]] (accepted, temporary): hide the edge now (island mask + fog), chunk streaming (module 24) after the presentation
 - [[firebase-hosting-setup]] (accepted): personal Firebase project, live at https://bioluminescent-ocean.web.app
 
@@ -40,7 +42,8 @@
 See "Open questions" in `CLAUDE.md`.
 
 ## Claude write-ups
-- [[play-mode]]: ▶ Play, one night: planet title → dive → wake sleeping reefs → moonrise → closing card
+- [[play-mode]] (removed 2026-11-15): ▶ Play, one night: planet title → dive → wake sleeping reefs → moonrise → closing card
+- [[whats-procedural-in-play]]: what is procedural in the game, module by module (for slides)
 - [[hero-art-direction]]: painterly blue art direction for the hero, what's built, and the moon-driven proposal for the world
 - [[final-presentation-plan]]: progress presentation (11/11) + final (~11/23) plan, creature ideas, algae bloom as stretch
 - [[bioluminescence-explained]]: ELI5 + real mechanism of bioluminescence and how the project models it

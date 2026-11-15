@@ -2,7 +2,7 @@ import { useControls } from 'leva'
 import type { ModuleSceneProps } from '../types'
 import { CurrentsScene } from '../currents/Scene'
 import { Player } from './Player'
-import { Jellyfish } from './Jellyfish'
+import { Jellyfish, type JellyStyle } from './Jellyfish'
 import { MoonChild } from './MoonChild'
 import { WakeDebug } from './WakeDebug'
 import { Atmosphere } from '../atmosphere/Atmosphere'
@@ -15,8 +15,8 @@ type Body = 'moonChild' | 'jellyfish'
 // excitation rule.
 //
 // The player's BODY is swappable: movement and disturbance are the same, only the
-// creature drawn on top changes (the moon child is the story's main character; the
-// jellyfish was the first body and becomes a species of the world).
+// creature drawn on top changes. The jellyfish is the default (with a glow or a
+// painted-illustration style); the moon child stays as an alternative body.
 //
 // <Atmosphere> paints the water around the dive (gradient, fog colour, god rays,
 // bubbles), driven by the moon phase.
@@ -24,11 +24,18 @@ type Body = 'moonChild' | 'jellyfish'
 // Order matters: Player moves first each frame (it was mounted first), then the
 // body and the debug shape read the updated position.
 export function DisturbanceScene({ debug }: ModuleSceneProps) {
-  const { body } = useControls('Player body', {
+  const { body, style } = useControls('Player body', {
     body: {
-      value: 'moonChild' as Body,
-      options: { 'Moon child': 'moonChild', Jellyfish: 'jellyfish' } as Record<string, Body>,
-      hint: 'Which creature you swim as. Movement and the glow rule are identical; only the body differs. Moon child: a silhouette with a rim shader, a procedural swim cycle and glowing hair chains. Jellyfish: a pulsing bell and trailing tentacles.',
+      value: 'jellyfish' as Body,
+      options: { Jellyfish: 'jellyfish', 'Moon child': 'moonChild' } as Record<string, Body>,
+      hint: 'Which creature you swim as. Movement and the glow rule are identical; only the body differs. Jellyfish: a pulsing bell and trailing tentacles (follow-the-leader chains). Moon child: the procedural skinned character from the painted art direction.',
+    },
+    style: {
+      label: 'jellyfish style',
+      value: 'glow' as JellyStyle,
+      options: { Glow: 'glow', 'Painted illustration': 'painted' } as Record<string, JellyStyle>,
+      hint: 'How the jellyfish is drawn (same body and motion). Glow: additive glowing bell and thin light tentacles. Painted illustration: the moon child\'s art direction: toon-shaded bell (soft steps, blue shadows, peach highlight, cyan rim, caustics) with an ink outline, and ribbon tentacles in the palette.',
+      render: (get) => get('Player body.body') === 'jellyfish',
     },
   })
   return (
@@ -36,7 +43,7 @@ export function DisturbanceScene({ debug }: ModuleSceneProps) {
       <Atmosphere />
       <CurrentsScene debug={debug} />
       <Player />
-      {body === 'moonChild' ? <MoonChild debug={debug} /> : <Jellyfish />}
+      {body === 'moonChild' ? <MoonChild debug={debug} /> : <Jellyfish style={style} />}
       {debug && <WakeDebug />}
     </>
   )

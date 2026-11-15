@@ -6,10 +6,10 @@ import { night } from '../../systems/night'
 import { PALETTE } from '../../style/palette'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The child's own light (line of sight in its simplest form, module 25)
+// The player's own light (line of sight in its simplest form, module 25)
 //
 // On a dark night nothing is lit, so you can only see what is NEAR you. One point
-// light travels with the moon child and lights the seafloor around her:
+// light travels with the player and lights the seafloor around it:
 //
 //   reach     = 4 + 5 × swim     (swim = speed as 0…1: faster → you see further)
 //   intensity = strength × (1 − night.light) × (0.5 + 0.5 × swim)

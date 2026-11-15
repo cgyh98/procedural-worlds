@@ -1,7 +1,11 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, LineSegments, Quaternion, Vector3, type BufferAttribute } from 'three'
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, LineSegments, Mesh, MeshBasicMaterial, Quaternion, ShaderMaterial, Vector3 } from 'three'
 import { player } from '../../systems/player'
+import { useWorld } from '../../store/useWorld'
+import { exposure } from '../atmosphere/moonLight'
+import { PALETTE, color } from '../../style/palette'
+import { createHeroMaterial, createOutlineMaterial } from './heroShader'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The player's body: a procedural jellyfish
@@ -18,7 +22,17 @@ import { player } from '../../systems/player'
 //   Because points are only dragged along by their neighbour, they lag behind
 //   when the bell moves, so the tentacles trail naturally. No physics engine,
 //   just "follow the leader".
+//
+// TWO STYLES, same body and motion, only the drawing changes:
+//   glow:    additive glowing bell + 1-pixel line tentacles (the cosmos-board look)
+//   painted: the illustration style made for the moon child (hero-art-direction):
+//            the bell uses the toon shader (soft-stepped light, blue shadows, a touch
+//            of peach on top, cyan rim, caustics) plus an ink outline; the tentacles
+//            become camera-facing RIBBONS (like her hair), periwinkle → pale aqua.
+//            A small glowing core stays: it's still a bioluminescent animal.
 // ─────────────────────────────────────────────────────────────────────────────
+
+export type JellyStyle = 'glow' | 'painted'
 
 const BELL_RADIUS = 0.28
 const TENTACLES = 10
@@ -30,6 +44,13 @@ const BELL = new Color(0.5, 1.2, 2.4)
 const CORE = new Color(2.2, 2.6, 2.8)
 const TENTACLE_ROOT = new Color(0.5, 1.8, 1.6)
 const TENTACLE_TIP = new Color(0.02, 0.15, 0.4)
+// Painted style: the palette from src/style/palette.ts
+const RIBBON_ROOT = color(PALETTE.periwinkle)
+const RIBBON_MID = color(PALETTE.softViolet)
+const RIBBON_TIP = color(PALETTE.paleAqua)
+const RIBBON_EDGE = color(PALETTE.cobalt)
+const RIBBON_WIDTH = 0.022 // half-width at the root, tapering to a point
+const PAINTED_CORE = color(PALETTE.paleAqua).multiplyScalar(1.6) // above 1 → blooms a little
 
 const UP = new Vector3(0, 1, 0)
 // Scratch objects (one jellyfish, so module-level is fine)
@@ -38,10 +59,17 @@ const targetQuat = new Quaternion()
 const down = new Vector3()
 const side = new Vector3()
 const tmp = new Vector3()
+const tangent = new Vector3()
+const toCam = new Vector3()
+const across = new Vector3()
 
-export function Jellyfish() {
+export function Jellyfish({ style = 'glow' }: { style?: JellyStyle }) {
+  const painted = style === 'painted'
   const bellRef = useRef<Group>(null)
   const tentaclesRef = useRef<LineSegments>(null)
+  const ribbonsRef = useRef<Mesh>(null)
+  const paintedBellRef = useRef<Mesh>(null)
+  const outlineRef = useRef<Mesh>(null)
   const pulse = useRef(0) // the bell's pulse phase
   // Tentacle points in world space: TENTACLES × POINTS × xyz. Kept in a ref (per-frame data).
   const chain = useRef<Float32Array | null>(null)
@@ -73,10 +101,53 @@ export function Jellyfish() {
     return geo
   }, [])
 
-  useFrame(({ clock }, delta) => {
+  // Painted style: shared materials and the ribbon buffers
+  const bellMat = useMemo(() => {
+    const m = createHeroMaterial()
+    m.side = DoubleSide // the bell is an open dome: we see its inside from below
+    m.uniforms.uWarmAmount.value = 0.35 // a little peach where moonlight hits the top
+    return m
+  }, [])
+  const outlineMat = useMemo(() => createOutlineMaterial(), [])
+  const ribbonGeometry = useMemo(() => {
+    // Each tentacle: POINTS centre points → 2 ribbon vertices each (left and right edge)
+    const verts = TENTACLES * POINTS * 2
+    const geo = new BufferGeometry()
+    geo.setAttribute('position', new Float32BufferAttribute(new Float32Array(verts * 3), 3))
+    const colors = new Float32Array(verts * 3)
+    const c = new Color()
+    const index: number[] = []
+    for (let t = 0; t < TENTACLES; t++)
+      for (let k = 0; k < POINTS; k++) {
+        const f = k / (POINTS - 1) // 0 at the bell, 1 at the tip
+        for (let e = 0; e < 2; e++) {
+          // Along: periwinkle → soft violet → pale aqua. Across: one edge darker (volume).
+          if (f < 0.5) c.copy(RIBBON_ROOT).lerp(RIBBON_MID, f * 2)
+          else c.copy(RIBBON_MID).lerp(RIBBON_TIP, (f - 0.5) * 2)
+          if (e === 0) c.lerp(RIBBON_EDGE, 0.5)
+          colors.set([c.r, c.g, c.b], ((t * POINTS + k) * 2 + e) * 3)
+        }
+        if (k < POINTS - 1) {
+          const a = (t * POINTS + k) * 2
+          index.push(a, a + 1, a + 2, a + 1, a + 3, a + 2) // two triangles per piece
+        }
+      }
+    geo.setAttribute('color', new Float32BufferAttribute(colors, 3))
+    geo.setIndex(new BufferAttribute(new Uint32Array(index), 1))
+    return geo
+  }, [])
+  useEffect(
+    () => () => {
+      bellMat.dispose()
+      outlineMat.dispose()
+      ribbonGeometry.dispose()
+    },
+    [bellMat, outlineMat, ribbonGeometry],
+  )
+
+  useFrame(({ clock, camera }, delta) => {
     const bell = bellRef.current
-    const lines = tentaclesRef.current
-    if (!bell || !lines) return
+    if (!bell) return
     const dt = Math.min(delta, 0.05)
     const t = clock.elapsedTime
 
@@ -140,7 +211,50 @@ export function Jellyfish() {
       }
     }
 
-    // Copy the chains into the line buffer (each piece = point k and point k+1)
+    // ── Painted style: shader uniforms + ribbons around the chains ──
+    if (painted) {
+      const lit = exposure(useWorld.getState().moonPhase) // the moon sets how lit the paint is
+      const bm = paintedBellRef.current?.material as ShaderMaterial | undefined
+      const om = outlineRef.current?.material as ShaderMaterial | undefined
+      if (bm) {
+        bm.uniforms.uTime.value = t
+        bm.uniforms.uExposure.value = lit
+      }
+      if (om) om.uniforms.uExposure.value = lit
+      const ribbons = ribbonsRef.current
+      if (ribbons) {
+        ;(ribbons.material as MeshBasicMaterial).color.setScalar(lit)
+        // At each chain point, step sideways by ± half the width. "Sideways" is
+        // perpendicular to the tentacle AND to the view direction, so the ribbon always
+        // shows its broad side to the camera (a billboard strip).
+        const rAttr = ribbons.geometry.attributes.position as BufferAttribute
+        const rPos = rAttr.array as Float32Array
+        for (let i = 0; i < TENTACLES; i++)
+          for (let k = 0; k < POINTS; k++) {
+            const o = (i * POINTS + k) * 3
+            const a = (i * POINTS + Math.max(0, k - 1)) * 3
+            const b = (i * POINTS + Math.min(POINTS - 1, k + 1)) * 3
+            tangent.set(c[b] - c[a], c[b + 1] - c[a + 1], c[b + 2] - c[a + 2]).normalize()
+            toCam.set(camera.position.x - c[o], camera.position.y - c[o + 1], camera.position.z - c[o + 2]).normalize()
+            across.crossVectors(tangent, toCam).normalize()
+            const f = k / (POINTS - 1)
+            const w = RIBBON_WIDTH * Math.pow(1 - f, 0.7) // taper to a point at the tip
+            const v0 = (i * POINTS + k) * 6
+            rPos[v0] = c[o] - across.x * w
+            rPos[v0 + 1] = c[o + 1] - across.y * w
+            rPos[v0 + 2] = c[o + 2] - across.z * w
+            rPos[v0 + 3] = c[o] + across.x * w
+            rPos[v0 + 4] = c[o + 1] + across.y * w
+            rPos[v0 + 5] = c[o + 2] + across.z * w
+          }
+        rAttr.needsUpdate = true
+      }
+      return
+    }
+
+    // ── Glow style: copy the chains into the line buffer (each piece = point k and point k+1) ──
+    const lines = tentaclesRef.current
+    if (!lines) return
     const attr = lines.geometry.attributes.position as BufferAttribute
     const pos = attr.array as Float32Array
     let v = 0
@@ -154,6 +268,30 @@ export function Jellyfish() {
         }
     attr.needsUpdate = true
   })
+
+  if (painted)
+    return (
+      <>
+        <group ref={bellRef}>
+          {/* The bell, painted: toon shader + an ink outline (the same "inverted hull" as the moon child) */}
+          <mesh ref={paintedBellRef} material={bellMat}>
+            <sphereGeometry args={[BELL_RADIUS, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          </mesh>
+          <mesh ref={outlineRef} material={outlineMat}>
+            <sphereGeometry args={[BELL_RADIUS, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          </mesh>
+          {/* A small glowing core: still a bioluminescent animal */}
+          <mesh position={[0, BELL_RADIUS * 0.3, 0]}>
+            <sphereGeometry args={[BELL_RADIUS * 0.16, 12, 8]} />
+            <meshBasicMaterial color={PAINTED_CORE} toneMapped={false} />
+          </mesh>
+        </group>
+        {/* Ribbon tentacles (world space, rebuilt every frame) */}
+        <mesh ref={ribbonsRef} geometry={ribbonGeometry} frustumCulled={false}>
+          <meshBasicMaterial vertexColors side={DoubleSide} transparent opacity={0.9} depthWrite={false} />
+        </mesh>
+      </>
+    )
 
   return (
     <>

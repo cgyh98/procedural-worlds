@@ -11,7 +11,4 @@
 // the same as before.
 export const night = {
   light: 1,
-  // Play mode's overrides (set while a night is being played, reset after):
-  minDarkness: 0, // the darkness slider can't go below this (play: 1 = pitch black at new moon)
-  waterFloor: 0.3, // the water colour never drops below this fraction (play: almost black)
 }
